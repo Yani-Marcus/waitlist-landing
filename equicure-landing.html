@@ -360,5 +360,57 @@
 
   </div>
 </section>
+
+<script>
+function submit(type) {
+  const fields = {
+    patient: ['patient-name', 'patient-email', 'patient-zip'],
+    provider: ['provider-name', 'provider-email', 'provider-facility', 'provider-type'],
+    investor: ['investor-name', 'investor-email'],
+  };
+  const required = { patient: 2, provider: 3, investor: 2};
+
+  // Validates required fields
+  const ids = fields[type];
+  let filled = 0;
+  for (let i = 0; i < required[type]; i++) {
+    const el = document.getElementById(ids[i]);
+    if (el && el.value.trim()) filled++;
+  }
+  if (filled < required[type]) {
+    for (let i = 0; i < required[type]; i++) {
+      const el = document.getElementById(ids[i]);
+      if (el && !el.value.trim()) {
+        el.style.borderColor = 'rgba(239,68,68,0.5)';
+        setTimeout(() => el.style.borderColor = '', 1500);
+      }
+    }
+    return;
+  } 
+  
+    // Collects form data
+  const data = { type };
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value.trim();
+  });
+
+  // POST to Azure function
+  fetch('https://waitlist.azurewebsites.net/api/waitlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Request failed');
+    document.getElementById(type + '-form').style.display = 'none';
+    document.getElementById(type + '-success').style.display = 'block';
+  })
+  .catch(() => {
+    alert('Something went wrong - please try again. ');
+  });
+  }
+  </script>
+  
 </body>
 </html>
